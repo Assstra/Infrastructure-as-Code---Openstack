@@ -1,0 +1,170 @@
+heat_template_version: 2021-04-16
+
+description: >
+  Simple app template
+
+parameters:
+  name:
+    type: string 
+    description: Name of the instance
+  key_name:
+    type: string
+    description: Name of an existing key pair to use for the server
+    constraints:
+      - custom_constraint: nova.keypair
+  flavor:
+    type: string
+    description: Flavor for the server to be created
+    default: m1.small
+    constraints:
+      - custom_constraint: nova.flavor
+  image:
+    type: string
+    description: Image ID or image name to use for the server
+    constraints:
+      - custom_constraint: glance.image
+  net:
+    type: string
+    default: ar-network
+  
+resources:
+  aggregator:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { template: "aggregator-name", params: { name: { get_param: name } } } }
+      key_name: { get_param: key_name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks:
+        - network: { get_param: net }
+      user_data: |
+        #!/bin/bash
+        set -e
+
+        # Update and install prerequisites
+        apt-get update -y
+        apt-get install -y software-properties-common git
+
+        # Install Ansible
+        apt-get install -y ansible
+
+        # Retrieve the IP addresses of the noun and verb instances
+        noun_ip=$(get_attr [noun, addresses, {get_param: net}, 0, addr])
+        verb_ip=$(get_attr [verb, addresses, {get_param: net}, 0, addr])
+
+        # Clone the repository
+        git clone https://github.com/Assstra/Infrastructure-as-Code---Openstack.git
+
+        # Apply the Ansible playbook
+        ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/aggregator.yml --extra-vars "app_port=3000 noun_provider_url=http://$noun_ip:3000 verb_provider_url=http://$verb_ip:3000"
+      security_groups:
+        - web
+        - ping
+        - ssh
+
+  noun:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { template: "noun-name", params: { name: { get_param: name } } } }
+      key_name: { get_param: key_name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks:
+        - network: { get_param: net }
+      user_data: |
+        #!/bin/bash
+        set -e
+
+        # Update and install prerequisites
+        apt-get update -y
+        apt-get install -y software-properties-common git
+
+        # Install Ansible
+        apt-get install -y ansible
+
+        # Clone the repository
+        git clone https://github.com/Assstra/Infrastructure-as-Code---Openstack.git
+
+        # Apply the Ansible playbook
+        ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/noun.yml --extra-vars "app_port=3000"
+      security_groups:
+        - web
+        - ping
+        - ssh
+
+  verb:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { template: "verb-name", params: { name: { get_param: name } } } }
+      key_name: { get_param: key_name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks:
+        - network: { get_param: net }
+      user_data: |
+        #!/bin/bash
+        set -e
+
+        # Update and install prerequisites
+        apt-get update -y
+        apt-get install -y software-properties-common git
+
+        # Install Ansible
+        apt-add-repository --yes --update ppa:ansible/ansible
+        apt-get install -y ansible
+
+        # Clone the repository
+        git clone https://github.com/Assstra/Infrastructure-as-Code---Openstack.git
+
+        # Apply the Ansible playbook
+        ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/verb.yml --extra-vars "app_port=3000"
+      security_groups:
+        - web
+        - ping
+        - ssh
+
+  agg_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: public
+
+  agg_association:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: agg_floating_ip }
+      port_id: {get_attr: [aggregator, addresses, {get_param: net}, 0, port]}
+
+  noun_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: public
+  
+  noun_association:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: noun_floating_ip }
+      port_id: {get_attr: [noun, addresses, {get_param: net}, 0, port]}
+
+  verb_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: public
+
+  verb_association:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: verb_floating_ip }
+      port_id: {get_attr: [verb, addresses, {get_param: net}, 0, port]}
+
+outputs:
+  aggregator_networks:
+    description: The networks of the aggregator server
+    value: { get_attr: [aggregator, networks] }
+
+  noun_networks:
+    description: The networks of the noun server
+    value: { get_attr: [noun, networks] }
+
+  verb_networks:
+    description: The networks of the verb server
+    value: { get_attr: [verb, networks] }
