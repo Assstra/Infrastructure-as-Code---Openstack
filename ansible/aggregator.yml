@@ -8,7 +8,7 @@
     noun_provider_url: "http://localhost:3001"
     verb_provider_url: "http://localhost:3002"
     node_version: "16.x"  # Update to the version you need
-    app_dir: "/opt/aggregator"
+    app_dir: "aggregator"
 
   tasks:
     - name: Install prerequisites
@@ -30,21 +30,15 @@
         name: nodejs
         state: present
 
-    - name: Create application directory
-      file:
-        path: "{{ app_dir }}"
-        state: directory
-        owner: www-data
-        group: www-data
-        mode: '0755'
+    - name: Example clone of a single branch
+      ansible.builtin.git:
+        repo: https://github.com/Assstra/kube_security.git
+        dest: ~/
+        single_branch: yes
+        version: main
 
-    - name: Copy application code
-      copy:
-        src: ./aggregator
-        dest: "{{ app_dir }}"
-        owner: www-data
-        group: www-data"
-        mode: '0755'
+    - name: Install application dependencies
+      command: cd kube_security/sample_app
 
     - name: Install application dependencies
       command: npm install
@@ -58,8 +52,8 @@
           PORT={{ app_port }}
           VERB_PROVIDER_URL={{ verb_provider_url }}
           NOUN_PROVIDER_URL={{ noun_provider_url }}
-        owner: www-data
-        group: www-data
+        owner: ansible
+        group: ansible
         mode: '0644'
 
     - name: Create systemd service file
