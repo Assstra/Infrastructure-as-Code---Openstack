@@ -18,13 +18,18 @@
 
     - name: Add Node.js repository
       shell: |
-        curl -fsSL https://deb.nodesource.com/setup_{{ node_version }} | bash -
+        curl -fsSL https://deb.nodesource.com/setup_{{ node_version }}.x | bash -
       args:
         executable: /bin/bash
 
     - name: Install Node.js
       apt:
         name: nodejs
+        state: present
+
+    - name: Install npm
+      apt:
+        name: npm
         state: present
 
     - name: Example clone of a single branch
