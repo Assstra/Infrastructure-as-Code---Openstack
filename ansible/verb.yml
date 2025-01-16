@@ -3,11 +3,10 @@
   hosts: localhost
   become: true
   vars:
-    app_name: random-verb-service
-    app_port: 3000
+    app_name: verb-provider
     word_type: verb
-    node_version: "16.x"
-    app_dir: "/opt/random-verb-service"
+    node_version: "23"
+    app_dir: "/opt/app/sample_app/verb-provider"
 
   tasks:
     - name: Install prerequisites
@@ -29,21 +28,12 @@
         name: nodejs
         state: present
 
-    - name: Create application directory
-      file:
-        path: "{{ app_dir }}"
-        state: directory
-        owner: www-data
-        group: www-data
-        mode: '0755'
-
-    - name: Copy application code
-      copy:
-        src: ./random-verb-service
-        dest: "{{ app_dir }}"
-        owner: www-data
-        group: www-data
-        mode: '0755'
+    - name: Example clone of a single branch
+      git:
+        repo: https://github.com/Assstra/kube_security.git
+        dest: /opt/app
+        single_branch: yes
+        version: main
 
     - name: Install application dependencies
       command: npm install
@@ -56,8 +46,8 @@
         content: |
           PORT={{ app_port }}
           WORD_TYPE={{ word_type }}
-        owner: www-data
-        group: www-data
+        owner: root
+        group: root
         mode: '0644'
 
     - name: Create systemd service file
@@ -65,7 +55,7 @@
         dest: /etc/systemd/system/{{ app_name }}.service
         content: |
           [Unit]
-          Description=Random verb Service
+          Description=Verb provider Service
           After=network.target
 
           [Service]
@@ -73,8 +63,8 @@
           ExecStart=/usr/bin/node {{ app_dir }}/index.js
           WorkingDirectory={{ app_dir }}
           Restart=always
-          User=www-data
-          Group=www-data
+          User=root
+          Group=root
 
           [Install]
           WantedBy=multi-user.target

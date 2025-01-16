@@ -4,11 +4,8 @@
   become: true
   vars:
     app_name: aggregator
-    app_port: 3000
-    noun_provider_url: "http://localhost:3001"
-    verb_provider_url: "http://localhost:3002"
-    node_version: "16.x"  # Update to the version you need
-    app_dir: "aggregator"
+    node_version: "23"
+    app_dir: "/opt/app/sample_app/aggregator"
 
   tasks:
     - name: Install prerequisites
@@ -31,14 +28,11 @@
         state: present
 
     - name: Example clone of a single branch
-      ansible.builtin.git:
+      git:
         repo: https://github.com/Assstra/kube_security.git
-        dest: ~/
+        dest: /opt/app
         single_branch: yes
         version: main
-
-    - name: Install application dependencies
-      command: cd kube_security/sample_app
 
     - name: Install application dependencies
       command: npm install
@@ -52,8 +46,8 @@
           PORT={{ app_port }}
           VERB_PROVIDER_URL={{ verb_provider_url }}
           NOUN_PROVIDER_URL={{ noun_provider_url }}
-        owner: ansible
-        group: ansible
+        owner: root
+        group: root
         mode: '0644'
 
     - name: Create systemd service file
@@ -69,8 +63,8 @@
           ExecStart=/usr/bin/node {{ app_dir }}/index.js
           WorkingDirectory={{ app_dir }}
           Restart=always
-          User=www-data
-          Group=www-data
+          User=root
+          Group=root
 
           [Install]
           WantedBy=multi-user.target
