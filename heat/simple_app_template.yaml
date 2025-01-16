@@ -40,6 +40,7 @@ resources:
       user_data: |
         #!/bin/bash
         set -e
+        export LC_ALL=C.UTF-8
 
         # Update and install prerequisites
         apt-get update -y
@@ -74,6 +75,7 @@ resources:
       user_data: |
         #!/bin/bash
         set -e
+        export LC_ALL=C.UTF-8
 
         # Update and install prerequisites
         apt-get update -y
@@ -104,6 +106,7 @@ resources:
       user_data: |
         #!/bin/bash
         set -e
+        export LC_ALL=C.UTF-8
 
         # Update and install prerequisites
         apt-get update -y
@@ -133,28 +136,6 @@ resources:
     properties:
       floatingip_id: { get_resource: agg_floating_ip }
       port_id: {get_attr: [aggregator, addresses, {get_param: net}, 0, port]}
-
-  noun_floating_ip:
-    type: OS::Neutron::FloatingIP
-    properties:
-      floating_network: public
-  
-  noun_association:
-    type: OS::Neutron::FloatingIPAssociation
-    properties:
-      floatingip_id: { get_resource: noun_floating_ip }
-      port_id: {get_attr: [noun, addresses, {get_param: net}, 0, port]}
-
-  verb_floating_ip:
-    type: OS::Neutron::FloatingIP
-    properties:
-      floating_network: public
-
-  verb_association:
-    type: OS::Neutron::FloatingIPAssociation
-    properties:
-      floatingip_id: { get_resource: verb_floating_ip }
-      port_id: {get_attr: [verb, addresses, {get_param: net}, 0, port]}
 
 outputs:
   aggregator_networks:
