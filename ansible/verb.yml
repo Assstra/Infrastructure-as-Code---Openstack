@@ -1,0 +1,93 @@
+---
+- name: Deploy Random verb Service
+  hosts: localhost
+  become: true
+  vars:
+    app_name: random-verb-service
+    app_port: 3000
+    word_type: verb
+    node_version: "16.x"
+    app_dir: "/opt/random-verb-service"
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name:
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Add Node.js repository
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_{{ node_version }} | bash -
+      args:
+        executable: /bin/bash
+
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Copy application code
+      copy:
+        src: ./random-verb-service
+        dest: "{{ app_dir }}"
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Install application dependencies
+      command: npm install
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Create environment file
+      copy:
+        dest: "{{ app_dir }}/.env"
+        content: |
+          PORT={{ app_port }}
+          WORD_TYPE={{ word_type }}
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Create systemd service file
+      copy:
+        dest: /etc/systemd/system/{{ app_name }}.service
+        content: |
+          [Unit]
+          Description=Random verb Service
+          After=network.target
+
+          [Service]
+          EnvironmentFile={{ app_dir }}/.env
+          ExecStart=/usr/bin/node {{ app_dir }}/index.js
+          WorkingDirectory={{ app_dir }}
+          Restart=always
+          User=www-data
+          Group=www-data
+
+          [Install]
+          WantedBy=multi-user.target
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start service
+      systemd:
+        name: "{{ app_name }}"
+        enabled: true
+        state: started
