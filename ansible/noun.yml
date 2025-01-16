@@ -28,11 +28,6 @@
         name: nodejs
         state: present
 
-    - name: Install npm
-      apt:
-        name: npm
-        state: present
-
     - name: Example clone of a single branch
       git:
         repo: https://github.com/Assstra/kube_security.git
