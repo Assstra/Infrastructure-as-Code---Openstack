@@ -28,10 +28,103 @@ parameters:
     default: ar-network
   
 resources:
-  aggregator:
+  nginx_load_balancer:
+    type: OS::Nova::Server 
+    properties:
+      name: { str_replace: { template: "nginx-lb-name", params: { name: { get_param: name } } } }
+      key_name: { get_param: key_name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks:
+        - network: { get_param: net }
+      user_data:
+        str_replace:
+          template: |
+            #!/bin/bash
+            set -e
+            export LC_ALL=C.UTF-8
+
+            # Update and install prerequisites
+            apt-get update -y
+            apt-get install -y nginx
+
+            # Configure Nginx
+            cat > /etc/nginx/nginx.conf <<EOF
+            worker_processes auto;
+            events {
+                worker_connections 1024;
+            }
+
+            http {
+                upstream front_servers {
+                    server 1$front1_ip:3000;
+                    server 1$front2_ip:3000;
+                }
+
+                server {
+                    listen 80;
+
+                    location / {
+                        proxy_pass http://front_servers;
+                        proxy_set_header Host \$host;
+                        proxy_set_header X-Real-IP \$remote_addr;
+                        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                        proxy_set_header X-Forwarded-Proto \$scheme;
+                    }
+                }
+            }
+            EOF
+
+            # Restart Nginx to apply configuration
+            systemctl restart nginx
+          params:
+            front1_ip: { get_attr: [aggregator1, addresses, {get_param: net}, 0, addr] }
+            front2_ip: { get_attr: [aggregator2, addresses, {get_param: net}, 0, addr] }
+      security_groups:
+        - web
+        - ping
+        - ssh
+
+  aggregator1:
     type: OS::Nova::Server
     properties:
-      name: { str_replace: { template: "aggregator-name", params: { name: { get_param: name } } } }
+      name: { str_replace: { template: "aggregator1-name", params: { name: { get_param: name } } } }
+      key_name: { get_param: key_name }
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks:
+        - network: { get_param: net }
+      user_data:
+        str_replace:
+          template: |
+            #!/bin/bash
+            set -e
+            export LC_ALL=C.UTF-8
+
+            # Update and install prerequisites
+            apt-get update -y
+            apt-get install -y software-properties-common git
+
+            # Install Ansible
+            apt-get install -y ansible
+
+            # Clone the repository
+            git clone https://github.com/Assstra/Infrastructure-as-Code---Openstack.git
+
+            # Apply the Ansible playbook
+            ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/aggregator.yml --extra-vars "app_port=3000 noun_provider_url=http://$noun_ip:3000 verb_provider_url=http://$verb_ip:3000"
+          params:
+            $noun_ip: { get_attr: [noun, addresses, {get_param: net}, 0, addr] }
+            $verb_ip: { get_attr: [verb, addresses, {get_param: net}, 0, addr] }
+      security_groups:
+        - web
+        - ping
+        - ssh
+  
+  aggregator2:
+    type: OS::Nova::Server
+    properties:
+      name: { str_replace: { template: "aggregator2-name", params: { name: { get_param: name } } } }
       key_name: { get_param: key_name }
       image: { get_param: image }
       flavor: { get_param: flavor }
@@ -126,21 +219,29 @@ resources:
         - ping
         - ssh
 
-  agg_floating_ip:
+  nginx_floating_ip:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network: public
 
-  agg_association:
+  nginx_association:
     type: OS::Neutron::FloatingIPAssociation
     properties:
-      floatingip_id: { get_resource: agg_floating_ip }
-      port_id: {get_attr: [aggregator, addresses, {get_param: net}, 0, port]}
+      floatingip_id: { get_resource: nginx_floating_ip }
+      port_id: {get_attr: [nginx_load_balancer, addresses, {get_param: net}, 0, port]}
 
 outputs:
+  nginx_load_balancer_networks:
+    description: The networks of the aggregator server
+    value: { get_attr: [nginx_load_balancer, networks] }
+
   aggregator_networks:
     description: The networks of the aggregator server
-    value: { get_attr: [aggregator, networks] }
+    value: { get_attr: [aggregator1, networks] }
+
+  aggregator2_networks:
+    description: The networks of the aggregator server
+    value: { get_attr: [aggregator2, networks] }
 
   noun_networks:
     description: The networks of the noun server
