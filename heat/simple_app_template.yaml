@@ -57,8 +57,8 @@ resources:
 
             http {
                 upstream front_servers {
-                    server 1$front1_ip:3000;
-                    server 1$front2_ip:3000;
+                    server front1_ip:3000;
+                    server front2_ip:3000;
                 }
 
                 server {
@@ -112,10 +112,10 @@ resources:
             git clone https://github.com/Assstra/Infrastructure-as-Code---Openstack.git
 
             # Apply the Ansible playbook
-            ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/aggregator.yml --extra-vars "app_port=3000 noun_provider_url=http://$noun_ip:3000 verb_provider_url=http://$verb_ip:3000"
+            ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/aggregator.yml --extra-vars "app_port=3000 noun_provider_url=http://noun_ip:3000 verb_provider_url=http://verb_ip:3000"
           params:
-            $noun_ip: { get_attr: [noun, addresses, {get_param: net}, 0, addr] }
-            $verb_ip: { get_attr: [verb, addresses, {get_param: net}, 0, addr] }
+            noun_ip: { get_attr: [noun, addresses, {get_param: net}, 0, addr] }
+            verb_ip: { get_attr: [verb, addresses, {get_param: net}, 0, addr] }
       security_groups:
         - web
         - ping
@@ -148,10 +148,10 @@ resources:
             git clone https://github.com/Assstra/Infrastructure-as-Code---Openstack.git
 
             # Apply the Ansible playbook
-            ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/aggregator.yml --extra-vars "app_port=3000 noun_provider_url=http://$noun_ip:3000 verb_provider_url=http://$verb_ip:3000"
+            ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/aggregator.yml --extra-vars "app_port=3000 noun_provider_url=http://noun_ip:3000 verb_provider_url=http://verb_ip:3000"
           params:
-            $noun_ip: { get_attr: [noun, addresses, {get_param: net}, 0, addr] }
-            $verb_ip: { get_attr: [verb, addresses, {get_param: net}, 0, addr] }
+            noun_ip: { get_attr: [noun, addresses, {get_param: net}, 0, addr] }
+            verb_ip: { get_attr: [verb, addresses, {get_param: net}, 0, addr] }
       security_groups:
         - web
         - ping
