@@ -1,0 +1,16 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: argocd
+  namespace: kube-system
+spec:
+  targetNamespace: argocd
+  createNamespace: true
+  version: 7.7.17
+  chart: argo-helm
+  repo: https://argoproj.github.io/
+  valuesContent: |-
+    crds:
+      install: true
+    global:
+      domain: argocd.araimbault.com
