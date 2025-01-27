@@ -4,7 +4,7 @@
   become: true
 
 - name: Create the k3s server manifests directory
-  file:
+  ansible.builtin.file:
     path: /var/lib/rancher/k3s/server/manifests
     state: directory
     mode: 0755
