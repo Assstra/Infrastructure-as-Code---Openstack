@@ -15,13 +15,13 @@
 
     # - name: Copy the cert-manager Helm chart file
     #   copy:
-    #     src: helm_charts/cert-manager-helm-chart.yml
+    #     src: cert-manager-helm-chart.yml
     #     dest: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
     #     mode: 0600
 
     - name: Copy the argocd Helm chart file
       copy:
-        src: helm_charts/argocd-helm-chart.yml
+        src: argocd-helm-chart.yml
         dest: /var/lib/rancher/k3s/server/manifests/argocd.yaml
         mode: 0600
 
