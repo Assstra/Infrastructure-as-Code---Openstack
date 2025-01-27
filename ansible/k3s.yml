@@ -1,4 +1,8 @@
 ---
+- name: Deploy K3s
+  hosts: localhost
+  become: true
+
 - name: Create the k3s server manifests directory
   file:
     path: /var/lib/rancher/k3s/server/manifests
