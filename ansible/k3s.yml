@@ -1,0 +1,27 @@
+- name: Create the k3s server manifests directory
+  file:
+    path: /var/lib/rancher/k3s/server/manifests
+    state: directory
+    mode: 0755
+
+- name: Check pwd
+  shell: pwd
+
+# - name: Copy the cert-manager Helm chart file
+#   copy:
+#     src: helm_charts/cert-manager-helm-chart.yml
+#     dest: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
+#     mode: 0600
+
+- name: Copy the argocd Helm chart file
+  copy:
+    src: helm_charts/argocd-helm-chart.yml
+    dest: /var/lib/rancher/k3s/server/manifests/argocd.yaml
+    mode: 0600
+
+- name: Install k3s
+  shell: curl -sfL https://get.k3s.io | sh -
+
+- name: Print the kubeconfig file
+  shell: cat /etc/rancher/k3s/k3s.yaml
+

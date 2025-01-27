@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+export LC_ALL=C.UTF-8
+
+# Update and install prerequisites
+apt-get update -y
+apt-get install -y software-properties-common git
+
+# Install Ansible
+apt-get install -y ansible
+
+# Clone the repository
+git clone https://github.com/Assstra/Infrastructure-as-Code---Openstack.git
+
+# Apply the Ansible playbook
+ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/k3s.yml
