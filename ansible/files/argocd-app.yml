@@ -25,5 +25,8 @@ spec:
           namespace: myblog
           server: https://kubernetes.default.svc
         syncPolicy:
+          automated:
+            prune: true
+            selfHeal: false
           syncOptions:
             - CreateNamespace=true

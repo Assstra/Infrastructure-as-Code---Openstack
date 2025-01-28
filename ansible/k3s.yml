@@ -42,7 +42,7 @@
                   "ghcr.io": {
                     "username": "{{ github_username }}",
                     "password": "{{ github_token }}",
-                    "email": "{{ github_email }}",
+                    "email": "{{ github_email }}"
                   }
                 }
               }
