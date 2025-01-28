@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+export LC_ALL=C.UTF-8
+
+# Update and install prerequisites
+apt-get update -y
+apt-get install -y nginx
+
+# Configure Nginx
+cat > /etc/nginx/nginx.conf <<EOF
+worker_processes auto;
+events {
+    worker_connections 1024;
+}
+
+http {
+    upstream front_servers {
+        server ${front1_ip}:3000;
+        server ${front2_ip}:3000;
+    }
+
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://front_servers;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+        }
+    }
+}
+EOF
+
+# Restart Nginx to apply configuration
+systemctl restart nginx
