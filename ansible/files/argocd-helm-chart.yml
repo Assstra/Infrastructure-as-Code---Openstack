@@ -13,5 +13,37 @@ spec:
   valuesContent: |-
     crds:
       install: true
-    global:
-      domain: argocd.araimbault.com
+    configs:
+      repositories:
+        myblog:
+          type: git
+          url: git@github.com:Assstra/cybersecurity_writeups.git
+          name: myblog
+          sshPrivateKey: |
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            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
+            5BCCdIG/EqM4PItXAAAACmFyZ29jZC1rZXk=
+            -----END OPENSSH PRIVATE KEY-----
