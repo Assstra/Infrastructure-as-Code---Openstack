@@ -1,0 +1,8 @@
+# Don't commit your terraform variables if you are not sure of what you're doing
+terraform/terraform.tfvars
+terraform/.terraform*
+terraform/terraform.tfstate*
+
+k3s/terraform.tfvars
+k3s/.terraform*
+k3s/terraform.tfstate*
