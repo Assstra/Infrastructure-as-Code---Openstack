@@ -67,7 +67,7 @@
         mode: 0600
 
     - name: Install k3s
-      shell: curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --no-deploy traefik" sh
+      shell: curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="server --disable=traefik" sh -
 
     - name: Apply Gateway API standard installation
       ansible.builtin.command:
