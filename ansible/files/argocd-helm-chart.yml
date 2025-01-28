@@ -14,6 +14,8 @@ spec:
     crds:
       install: true
     configs:
+      params:
+        server.insecure: true
       repositories:
         myblog:
           type: git
