@@ -3,6 +3,14 @@
   hosts: localhost
   become: true
 
+  vars:
+    secret_name: ghcr-login-secret
+    namespace: myblog
+    docker_server: "https://ghcr.io"
+    docker_username: "{{ github_username }}"
+    docker_password: "{{ github_token }}"
+    docker_email: "{{ github_email }}"
+
   tasks:
     - name: Create the k3s server manifests directory
       file:
@@ -10,14 +18,30 @@
         state: directory
         mode: 0755
 
-    - name: Check pwd
-      shell: pwd
-
     # - name: Copy the cert-manager Helm chart file
     #   copy:
     #     src: cert-manager-helm-chart.yml
     #     dest: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
     #     mode: 0600
+
+    - name: Create myblog secret file
+      copy:
+        dest: /var/lib/rancher/k3s/server/manifests/myblog-secret.yaml
+        content: |
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: {{ namespace }}
+          ---
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: {{ secret_name }}
+            namespace: {{ namespace }}
+          type: kubernetes.io/dockerconfigjson
+          data:
+            .dockerconfigjson: "{{ '{\"auths\":{\"' + docker_server + '\":{\"username\":\"' + docker_username + '\",\"password\":\"' + docker_password + '\",\"email\":\"' + docker_email + '\"}}}' | b64encode }}"
+        mode: 0600
 
     - name: Copy the argocd Helm chart file
       copy:

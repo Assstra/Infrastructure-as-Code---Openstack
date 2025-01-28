@@ -13,4 +13,4 @@ apt-get install -y ansible
 git clone https://github.com/Assstra/Infrastructure-as-Code---Openstack.git
 
 # Apply the Ansible playbook
-ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/k3s.yml
+ansible-playbook --connection=local --inventory 127.0.0.1, Infrastructure-as-Code---Openstack/ansible/k3s.yml --extra-vars "github_username=${github_username} github_token=${github_token} github_email=${github_email}"
