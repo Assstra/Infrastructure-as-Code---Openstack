@@ -14,11 +14,11 @@
         state: directory
         mode: 0755
 
-    # - name: Copy the cert-manager Helm chart file
-    #   copy:
-    #     src: cert-manager-helm-chart.yml
-    #     dest: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
-    #     mode: 0600
+    - name: Copy the cert-manager Helm chart file
+      copy:
+        src: cert-manager-helm-chart.yml
+        dest: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
+        mode: 0600
 
     - name: Create myblog secret file
       copy:
@@ -61,7 +61,7 @@
         mode: 0600
 
     - name: Install k3s
-      shell: curl -sfL https://get.k3s.io | sh - --disable traefik
+      shell: curl -sfL https://get.k3s.io | sh -
 
     - name: Apply Gateway API standard installation
       ansible.builtin.command:
@@ -75,6 +75,6 @@
       ansible.builtin.command:
         cmd: kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/v3.3/docs/content/reference/dynamic-configuration/kubernetes-gateway-rbac.yml"
     
-    - name: Restart traefik deployment
-      ansible.builtin.command:
-        cmd: kubectl rollout restart deployment traefik -n traefik
+    # - name: Restart traefik deployment
+    #   ansible.builtin.command:
+    #     cmd: kubectl rollout restart deployment traefik -n traefik
