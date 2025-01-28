@@ -24,6 +24,12 @@
         src: argocd-helm-chart.yml
         dest: /var/lib/rancher/k3s/server/manifests/argocd.yaml
         mode: 0600
+    
+    - name: Copy the application Helm chart file
+      copy:
+        src: argocd-app.yml
+        dest: /var/lib/rancher/k3s/server/manifests/argocd-app.yaml
+        mode: 0600
 
     - name: Install k3s
       shell: curl -sfL https://get.k3s.io | sh -
