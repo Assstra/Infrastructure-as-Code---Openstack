@@ -1,21 +1,29 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
 metadata:
-  name: myblog
+  namespace: kube-system
+  name: argocd-apps
 spec:
-  destination:
-    name: ''
-    namespace: myblog
-    server: https://kubernetes.default.svc
-  source:
-    path: helm
-    repoURL: git@github.com:Assstra/cybersecurity_writeups.git
-    targetRevision: HEAD
-    helm:
-      valueFiles:
-        - values.yaml
-  sources: []
-  project: default
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
+  targetNamespace: argocd
+  createNamespace: true
+  version: 2.0.2
+  chart: argocd-apps
+  repo: https://argoproj.github.io/argo-helm
+  valuesContent: |-
+    applications:
+      myblog:
+        namespace: argocd
+        project: default
+        source:
+          path: helm
+          repoURL: git@github.com:Assstra/cybersecurity_writeups.git
+          targetRevision: HEAD
+          helm:
+            valueFiles:
+              - values.yaml
+        destination:
+          namespace: myblog
+          server: https://kubernetes.default.svc
+        syncPolicy:
+          syncOptions:
+            - CreateNamespace=true
