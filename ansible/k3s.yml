@@ -53,6 +53,12 @@
         src: argocd-helm-chart.yml
         dest: /var/lib/rancher/k3s/server/manifests/argocd.yaml
         mode: 0600
+
+    - name: Copy the traefik Helm chart file
+      copy:
+        src: traefik-helm-chart.yml
+        dest: /var/lib/rancher/k3s/server/manifests/traefik.yaml
+        mode: 0600
     
     - name: Copy the application Helm chart file
       copy:
@@ -61,7 +67,7 @@
         mode: 0600
 
     - name: Install k3s
-      shell: curl -sfL https://get.k3s.io | sh -
+      shell: curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --no-deploy traefik" sh
 
     - name: Apply Gateway API standard installation
       ansible.builtin.command:
@@ -75,6 +81,6 @@
       ansible.builtin.command:
         cmd: kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/v3.3/docs/content/reference/dynamic-configuration/kubernetes-gateway-rbac.yml"
     
-    # - name: Restart traefik deployment
-    #   ansible.builtin.command:
-    #     cmd: kubectl rollout restart deployment traefik -n traefik
+    - name: Restart traefik deployment
+      ansible.builtin.command:
+        cmd: kubectl rollout restart deployment traefik -n traefik
