@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Create server in an OpenStack cloud
+      openstack.cloud.server:
+        name: ansible_as_provider_vm
+        state: present
+        cloud: openstack
+        region_name: regionOne
+        image: Debian-12
+        nics:
+         - net-name: ar-network
+        flavor: m1.small
+        key_name: ar
