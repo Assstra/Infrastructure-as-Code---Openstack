@@ -11,5 +11,26 @@ spec:
   repo: https://traefik.github.io/charts
   valuesContent: |-
     providers:
+      kubernetesIngress:
+        enabled: false
       kubernetesGateway:
         enabled: true
+    gateway:
+      enabled: true
+      namespace: myblog
+      listeners:
+        web:
+          port: 8000
+          hostname: blog.araimbault.com
+          protocol: HTTP
+          namespacePolicy: Same
+        websecure:
+          port 8443
+          hostname: blog.araimbault.com
+          protocol: HTTPS
+          certificateRefs:
+            letsencrypt-prod:
+              namespace: myblog
+          mode: Terminate
+          namespacePolicy: Same
+
