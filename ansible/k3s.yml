@@ -14,12 +14,6 @@
         state: directory
         mode: 0755
 
-    - name: Copy the cert-manager Helm chart file
-      copy:
-        src: cert-manager-helm-chart.yml
-        dest: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
-        mode: 0600
-
     - name: Create myblog secret file
       copy:
         dest: /var/lib/rancher/k3s/server/manifests/myblog-secret.yaml
@@ -54,12 +48,6 @@
         dest: /var/lib/rancher/k3s/server/manifests/argocd.yaml
         mode: 0600
 
-    - name: Copy the traefik Helm chart file
-      copy:
-        src: traefik-helm-chart.yml
-        dest: /var/lib/rancher/k3s/server/manifests/traefik.yaml
-        mode: 0600
-    
     - name: Copy the application Helm chart file
       copy:
         src: argocd-app.yml
@@ -73,14 +61,21 @@
       ansible.builtin.command:
         cmd: kubectl apply -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.0.0/standard-install.yaml"
 
-    - name: Restart cert-manager deployment
-      ansible.builtin.command:
-        cmd: kubectl rollout restart deployment cert-manager -n cert-manager
+    # To do after installing Gateway API standards
+    - name: Copy the cert-manager Helm chart file
+      copy:
+        src: cert-manager-helm-chart.yml
+        dest: /var/lib/rancher/k3s/server/manifests/cert-manager.yaml
+        mode: 0600
 
     - name: Apply Traefik Kubernetes Gateway RBAC
       ansible.builtin.command:
         cmd: kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/v3.3/docs/content/reference/dynamic-configuration/kubernetes-gateway-rbac.yml"
     
-    - name: Restart traefik deployment
-      ansible.builtin.command:
-        cmd: kubectl rollout restart deployment traefik -n traefik
+    # To do after traefik Gateway RBAC is installed
+    - name: Copy the traefik Helm chart file
+      copy:
+        src: traefik-helm-chart.yml
+        dest: /var/lib/rancher/k3s/server/manifests/traefik-with-gateway.yaml
+        mode: 0600
+    
